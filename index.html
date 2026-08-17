@@ -15,7 +15,8 @@ body{font-family:Inter,ui-sans-serif,system-ui,sans-serif}.tab-content{display:n
 .print-only{display:none}.login-overlay{position:fixed;inset:0;background:rgba(15,23,42,.96);z-index:100;display:flex;align-items:center;justify-content:center}.login-overlay.hidden{display:none}.expiry-ok{color:#047857}.expiry-warn{color:#b45309}.expiry-danger{color:#b91c1c;font-weight:700}
 </style>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col md:flex-row"><div id="loginOverlay" class="login-overlay"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 mx-4"><div class="text-center mb-6"><i class="fa-solid fa-store text-emerald-600 text-4xl"></i><h2 class="text-2xl font-extrabold mt-2">Minimarket Pro</h2><p class="text-sm text-gray-500">Login untuk mengakses aplikasi</p></div><div id="loginError" class="hidden bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-3"></div><label class="text-xs text-gray-500">Email</label><input id="loginEmail" type="email" autocomplete="username" class="w-full border rounded-lg px-3 py-3 mb-3" placeholder="admin@email.com"><label class="text-xs text-gray-500">Password</label><input id="loginPassword" type="password" autocomplete="current-password" class="w-full border rounded-lg px-3 py-3 mb-4" placeholder="Password"><button id="loginBtn" class="w-full bg-emerald-600 text-white rounded-lg py-3 font-bold">Masuk</button><p class="text-[11px] text-gray-400 mt-4 text-center">Akun dibuat/diatur melalui Firebase Authentication.</p></div></div>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col md:flex-row">
+<div id="loginOverlay" class="login-overlay"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 mx-4"><div class="text-center mb-6"><i class="fa-solid fa-store text-emerald-600 text-4xl"></i><h2 class="text-2xl font-extrabold mt-2">Minimarket Pro</h2><p class="text-sm text-gray-500">Login untuk mengakses aplikasi</p></div><div id="loginError" class="hidden bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-3"></div><label class="text-xs text-gray-500">Email</label><input id="loginEmail" type="email" autocomplete="username" class="w-full border rounded-lg px-3 py-3 mb-3" placeholder="admin@email.com"><label class="text-xs text-gray-500">Password</label><input id="loginPassword" type="password" autocomplete="current-password" class="w-full border rounded-lg px-3 py-3 mb-4" placeholder="Password"><button id="loginBtn" class="w-full bg-emerald-600 text-white rounded-lg py-3 font-bold">Masuk</button><p class="text-[11px] text-gray-400 mt-4 text-center">Akun dibuat/diatur melalui Firebase Authentication.</p></div></div>
 <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 no-print flex flex-col justify-between">
 <div><div class="p-5 border-b border-slate-800"><div class="flex items-center gap-3"><i class="fa-solid fa-store text-emerald-400 text-2xl"></i><div><h1 id="storeName" class="font-bold text-lg">Minimarket Pro</h1><span class="text-xs text-slate-400">POS • Stok • Laporan</span></div></div></div>
 <nav class="p-3 space-y-1 text-sm">
@@ -83,8 +84,7 @@ onAuthStateChanged(auth,u=>{window.currentUser=u;if(u){$('loginOverlay').classLi
 $('loginBtn').onclick=async()=>{const email=$('loginEmail').value.trim(),pass=$('loginPassword').value;if(!email||!pass){$('loginError').textContent='Email dan password wajib diisi.';$('loginError').classList.remove('hidden');return}try{$('loginBtn').disabled=true;$('loginBtn').textContent='Memproses...';await signInWithEmailAndPassword(auth,email,pass);$('loginError').classList.add('hidden')}catch(e){$('loginError').textContent='Login gagal: '+(e.code||e.message);$('loginError').classList.remove('hidden')}finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Masuk'}};
 $('logoutBtn').onclick=()=>signOut(auth);
 
-// navigation
- document.querySelectorAll('.nav').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active','bg-emerald-600'));b.classList.add('active','bg-emerald-600');document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));$(b.dataset.tab).classList.add('active');renderAll()}));
+document.querySelectorAll('.nav').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active','bg-emerald-600'));b.classList.add('active','bg-emerald-600');document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));$(b.dataset.tab).classList.add('active');renderAll()}));
 $('refreshBtn').onclick=()=>{renderAll();toast('Tampilan diperbarui')};
 function periodTx(){const a=$('startDate').value,b=$('endDate').value;return window.transactions.filter(t=>{const d=String(t.tanggal||'').slice(0,10);return (!a||d>=a)&&(!b||d<=b)})}
 function renderAll(){renderProducts();renderSelects();renderCart();renderReports();renderDashboard();renderRecent();renderStock();renderPurchases()}
@@ -130,58 +130,18 @@ window.closeProductModal=()=>{$('productModal').classList.remove('show')};window
 $('addProductBtn').onclick=()=>{$('editProductId').value='';$('productModalTitle').textContent='Tambah Barang';['pBarcode','pName','pCategory','pBuy','pSell','pStock','pExpiry','pBatch'].forEach(id=>$(id).value='');$('pUnit').value='Pcs';$('pMin').value=5;$('productModal').classList.add('show')};
 $('saveProduct').onclick=async()=>{const id=$('editProductId').value,barcode=$('pBarcode').value.trim(),nama=$('pName').value.trim();if(!nama||!barcode){toast('Barcode/SKU dan nama barang wajib diisi','err');return}const data={barcode,nama,kategori:$('pCategory').value.trim()||'Umum',satuan:$('pUnit').value,hargaBeli:Number($('pBuy').value||0),harga:Number($('pSell').value||0),stok:Number($('pStock').value||0),stokMin:Number($('pMin').value||0),expiredAt:$('pExpiry').value||null,batch:$('pBatch').value.trim()||'',updatedAt:new Date().toISOString()};try{if(id){await updateDoc(doc(db,'produk_kios',id),data);await audit('UPDATE_PRODUCT','Mengubah '+nama)}else{data.createdAt=new Date().toISOString();const r=await addDoc(collection(db,'produk_kios'),data);await audit('CREATE_PRODUCT','Menambah '+nama+' ('+r.id+')')}closeProductModal();toast('Barang berhasil disimpan')}catch(e){toast('Gagal menyimpan barang: '+e.message,'err')}};
 $('addCart').onclick=()=>{const p=window.products.find(x=>x.id===$('posProduct').value),qty=Number($('posQty').value||0);if(!p||qty<1){toast('Pilih barang dan qty','err');return}if(expiryInfo(p).expired){toast('Barang sudah kadaluarsa dan tidak boleh dijual: '+p.nama,'err');return}if(qty>Number(p.stok||0)){toast('Stok tidak mencukupi','err');return}const old=window.cart.find(x=>x.id===p.id);if(old){if(old.qty+qty>Number(p.stok||0)){toast('Qty melebihi stok','err');return}old.qty+=qty}else window.cart.push({id:p.id,nama:p.nama,harga:Number(p.harga||0),hargaBeli:Number(p.hargaBeli||0),qty});renderCart()};$('clearCart').onclick=()=>{window.cart=[];renderCart()};$('posDiscount').oninput=renderCart;
-function printReceipt(t){if(!t)return toast('Belum ada transaksi untuk dicetak','err');const w=window.open('','_blank','width=420,height=700');if(!w)return toast('Popup diblokir browser. Izinkan popup untuk mencetak struk.','err');const rows=(t.items||[]).map(i=>`<tr><td>${esc(i.nama)}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">${rupiah(i.harga*i.qty)}</td></tr>`).join('');w.document.write(`<!doctype html><html><head><title>Struk ${t.no}</title><style>body{font-family:Arial,sans-serif;width:300px;margin:20px auto;font-size:12px}h2{text-align:center;margin:0 0 4px}p{text-align:center;margin:3px}.line{border-top:1px dashed #000;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:3px 0}.total{font-size:15px;font-weight:bold}</style></head><body><h2>MINIMARKET PRO</h2><p>Struk Pembelian</p><div class="line"></div><p style="text-align:left">No: ${esc(t.no)}<br>${esc(t.tanggal)}<br>Kasir: ${esc(t.kasir)}</p><div class="line"></div><table>${rows}</table><div class="line"></div><p style="text-align:right">Subtotal: ${rupiah(t.items.reduce((a,i)=>a+i.harga*i.qty,0))}<br>Diskon: ${rupiah(t.diskon)}<br><span class="total">TOTAL: ${rupiah(t.total)}</span></p><p>Metode: ${esc(t.metode)}</p><div class="line"></div><p>Terima kasih</p><script>window.onload=()=>{window.print();window.onafterprint=()=>window.close()}<\/script>
-<script>
-(function(){
-  let buf="", timer=null;
-  function input(){return document.getElementById("barcodeInput")||document.querySelector('input[id*="barcode" i],input[placeholder*="barcode" i]');}
-  window.focusBarcodeScanner=function(){const x=input();if(x){x.focus();x.select?.();}};
-  window.handleBarcodeScan=function(code){
-    code=String(code||"").trim(); if(!code)return;
-    if(typeof window.cariBarangDenganBarcode==="function") window.cariBarangDenganBarcode(code);
-    else if(typeof window.searchProductByBarcode==="function") window.searchProductByBarcode(code);
-    else if(typeof window.tambahKeKeranjangDenganBarcode==="function") window.tambahKeKeranjangDenganBarcode(code);
-    else alert("Barcode "+code+" belum ditemukan.");
-    setTimeout(focusBarcodeScanner,100);
-  };
-  document.addEventListener("DOMContentLoaded",function(){
-    let x=input();
-    if(!x){
-      const pos=document.querySelector("#tab-pos,#tab-penjualan");
-      if(pos){
-        const d=document.createElement("div");
-        d.style.cssText="background:white;padding:12px;border:1px solid #ddd;border-radius:10px;margin-bottom:12px";
-        d.innerHTML='<b>🔎 Scan Barcode</b> <input id="barcodeInput" autocomplete="off" placeholder="Scan barcode lalu Enter" style="margin-left:10px;padding:9px;min-width:260px;border:1px solid #ccc;border-radius:7px"><button onclick="focusBarcodeScanner()" style="padding:9px;margin-left:6px">Fokus Scanner</button>';
-        pos.prepend(d); x=d.querySelector("#barcodeInput");
-      }
-    }
-    if(x)x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handleBarcodeScan(x.value);x.value="";}});
-    if(x)focusBarcodeScanner();
-    document.addEventListener("keydown",e=>{
-      if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
-      if(e.key==="Enter"){if(buf.length>=4)handleBarcodeScan(buf);buf="";return;}
-      if(e.key.length===1){buf+=e.key;clearTimeout(timer);timer=setTimeout(()=>buf="",80);}
-    });
-  });
-})();
-</script>
 
-<script>
-window.printCurrentPage=function(){window.print()};
-window.printReceipt=function(t){
- t=t||window.lastTransaction||{};
- const items=Array.isArray(t.items)?t.items:[];
- const rupiah=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
- const rows=items.map(i=>`<tr><td>${i.nama||i.name||"-"}</td><td>${i.qty||i.jumlah||1}</td><td>${rupiah((i.harga||i.price||0)*(i.qty||i.jumlah||1))}</td></tr>`).join("");
- const w=window.open("","_blank","width=420,height=700");
- if(!w){alert("Izinkan pop-up untuk mencetak struk.");return}
- w.document.write(`<html><head><title>Struk</title><style>@page{size:80mm auto;margin:4mm}body{font:12px Arial}table{width:100%}td{padding:3px}h2{text-align:center}</style></head><body><h2>APLIKASI KIOS PRO</h2><div style="text-align:center">${t.nomor||t.id||""}<br>${t.tanggal||new Date().toLocaleString("id-ID")}</div><hr><table>${rows}</table><hr><b>Total: ${rupiah(t.total)}</b><script>onload=()=>print()</script></body></html>`);
+function printReceipt(t){
+ if(!t)return toast('Belum ada transaksi untuk dicetak','err');
+ const w=window.open('','_blank','width=420,height=700');
+ if(!w)return toast('Popup diblokir browser. Izinkan popup untuk mencetak struk.','err');
+ const rows=(t.items||[]).map(i=>`<tr><td>${esc(i.nama)}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">${rupiah(i.harga*i.qty)}</td></tr>`).join('');
+ w.document.write(`<!doctype html><html><head><title>Struk ${t.no}</title><style>body{font-family:Arial,sans-serif;width:300px;margin:20px auto;font-size:12px}h2{text-align:center;margin:0 0 4px}p{text-align:center;margin:3px}.line{border-top:1px dashed #000;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:3px 0}.total{font-size:15px;font-weight:bold}</style></head><body><h2>MINIMARKET PRO</h2><p>Struk Pembelian</p><div class="line"></div><p style="text-align:left">No: ${esc(t.no)}<br>${esc(t.tanggal)}<br>Kasir: ${esc(t.kasir)}</p><div class="line"></div><table>${rows}</table><div class="line"></div><p style="text-align:right">Subtotal: ${rupiah(t.items.reduce((a,i)=>a+i.harga*i.qty,0))}<br>Diskon: ${rupiah(t.diskon)}<br><span class="total">TOTAL: ${rupiah(t.total)}</span></p><p>Metode: ${esc(t.metode)}</p><div class="line"></div><p>Terima kasih</p><script>window.onload=()=>{window.print();window.onafterprint=()=>window.close()}</script></body></html>`);
  w.document.close();
-};
-</script>
-</body></html>`);w.document.close()}
+}
+
 $('printLastSale').onclick=()=>printReceipt(window.lastSale);
-$('saveSale').onclick=async()=>{if(!window.cart.length){toast('Keranjang kosong','err');return}const discount=Math.max(0,Number($('posDiscount').value||0)),subtotal=window.cart.reduce((a,x)=>a+x.harga*x.qty,0),total=Math.max(0,subtotal-discount);const tanggal=new Date().toISOString();try{await runTransaction(db,async tr=>{for(const item of window.cart){const ref=doc(db,'produk_kios',item.id);const snap=await tr.get(ref);if(!snap.exists())throw new Error('Barang tidak ditemukan: '+item.nama);const s=Number(snap.data().stok||0);if(s<item.qty)throw new Error('Stok '+item.nama+' tidak cukup');tr.update(ref,{stok:s-item.qty,updatedAt:new Date().toISOString()})}const txRef=doc(collection(db,'transaksi'));tr.set(txRef,{tanggal,kasir:$('posKasir').value||'Kasir 1',metode:$('posMethod').value,total,diskon:discount,subtotal,items:window.cart.map(x=>({...x})),status:'Lunas'});});window.lastSale={tanggal,no:txRef.id,kasir:$('posKasir').value||'Kasir 1',metode:$('posMethod').value,total,diskon:discount,items:window.cart.map(x=>({...x}))};await audit('CREATE_SALE','Transaksi penjualan '+rupiah(total));window.cart=[];$('posDiscount').value=0;renderCart();toast('Transaksi berhasil disimpan')}catch(e){toast('Gagal transaksi: '+e.message,'err')}};
+$('saveSale').onclick=async()=>{if(!window.cart.length){toast('Keranjang kosong','err');return}const discount=Math.max(0,Number($('posDiscount').value||0)),subtotal=window.cart.reduce((a,x)=>a+x.harga*x.qty,0),total=Math.max(0,subtotal-discount);const tanggal=new Date().toISOString();try{const txRef=doc(collection(db,'transaksi'));await runTransaction(db,async tr=>{for(const item of window.cart){const ref=doc(db,'produk_kios',item.id);const snap=await tr.get(ref);if(!snap.exists())throw new Error('Barang tidak ditemukan: '+item.nama);const s=Number(snap.data().stok||0);if(s<item.qty)throw new Error('Stok '+item.nama+' tidak cukup');tr.update(ref,{stok:s-item.qty,updatedAt:new Date().toISOString()})}tr.set(txRef,{tanggal,kasir:$('posKasir').value||'Kasir 1',metode:$('posMethod').value,total,diskon:discount,subtotal,items:window.cart.map(x=>({...x})),status:'Lunas'});});window.lastSale={tanggal,no:txRef.id,kasir:$('posKasir').value||'Kasir 1',metode:$('posMethod').value,total,diskon:discount,items:window.cart.map(x=>({...x}))};await audit('CREATE_SALE','Transaksi penjualan '+rupiah(total));window.cart=[];$('posDiscount').value=0;renderCart();toast('Transaksi berhasil disimpan')}catch(e){toast('Gagal transaksi: '+e.message,'err')}};
 $('saveStock').onclick=async()=>{const id=$('stockProduct').value,qty=Number($('stockQty').value||0),type=$('stockType').value,note=$('stockNote').value.trim();if(!id||qty<=0){toast('Pilih barang dan isi jumlah','err');return}try{await runTransaction(db,async tr=>{const ref=doc(db,'produk_kios',id),s=await tr.get(ref);if(!s.exists())throw new Error('Barang tidak ditemukan');const old=Number(s.data().stok||0);let next=type==='masuk'?old+qty:type==='keluar'?old-qty:qty;if(next<0)throw new Error('Stok tidak boleh negatif');tr.update(ref,{stok:next,updatedAt:new Date().toISOString()});tr.set(doc(collection(db,'stok_mutasi')),{tanggal:new Date().toISOString(),produkId:id,namaProduk:s.data().nama,jenis:type,qty,stokSebelum:old,stokSesudah:next,keterangan:note,user:$('userName').textContent})});await audit('STOCK_MUTATION',type+' '+qty+' untuk '+id);await refreshProductsDirect();$('stockQty').value='';$('stockNote').value='';toast('Mutasi stok berhasil dan posisi stok diperbarui')}catch(e){toast('Gagal mutasi: '+e.message,'err')}};
 $('purchaseBtn').onclick=()=>{$('purchaseModal').classList.add('show')};$('savePurchase').onclick=async()=>{const id=$('purchaseProduct').value,supplier=$('supplier').value.trim()||'Umum',qty=Number($('purchaseQty').value||0),price=Number($('purchasePrice').value||0);const p=window.products.find(x=>x.id===id);if(!p||qty<=0){toast('Pilih barang dan qty','err');return}try{await runTransaction(db,async tr=>{const ref=doc(db,'produk_kios',id),s=await tr.get(ref);const old=Number(s.data().stok||0);tr.update(ref,{stok:old+qty,hargaBeli:price||Number(s.data().hargaBeli||0),updatedAt:new Date().toISOString()});tr.set(doc(collection(db,'pembelian')),{tanggal:new Date().toISOString(),supplier,namaProduk:p.nama,produkId:id,qty,hargaBeli:price||Number(p.hargaBeli||0),total:(price||Number(p.hargaBeli||0))*qty,user:$('userName').textContent});tr.set(doc(collection(db,'stok_mutasi')),{tanggal:new Date().toISOString(),produkId:id,namaProduk:p.nama,jenis:'masuk',qty,stokSebelum:old,stokSesudah:old+qty,keterangan:'Pembelian dari '+supplier,user:$('userName').textContent})});await audit('PURCHASE','Pembelian '+p.nama+' x '+qty);await refreshProductsDirect();closePurchaseModal();toast('Pembelian tersimpan dan posisi stok diperbarui')}catch(e){toast('Gagal pembelian: '+e.message,'err')}};
 $('globalSearch').oninput=()=>{const q=$('globalSearch').value.toLowerCase();if(!q){renderAll();return}document.querySelectorAll('#productsBody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none');document.querySelectorAll('#reportBody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none')};
@@ -193,50 +153,39 @@ $('pdfBtn').onclick=()=>{const {jsPDF}=window.jspdf,doc=new jsPDF();doc.text('LA
 
 <script>
 (function(){
-  let buf="", timer=null;
-  function input(){return document.getElementById("barcodeInput")||document.querySelector('input[id*="barcode" i],input[placeholder*="barcode" i]');}
-  window.focusBarcodeScanner=function(){const x=input();if(x){x.focus();x.select?.();}};
-  window.handleBarcodeScan=function(code){
-    code=String(code||"").trim(); if(!code)return;
-    if(typeof window.cariBarangDenganBarcode==="function") window.cariBarangDenganBarcode(code);
-    else if(typeof window.searchProductByBarcode==="function") window.searchProductByBarcode(code);
-    else if(typeof window.tambahKeKeranjangDenganBarcode==="function") window.tambahKeKeranjangDenganBarcode(code);
-    else alert("Barcode "+code+" belum ditemukan.");
-    setTimeout(focusBarcodeScanner,100);
-  };
-  document.addEventListener("DOMContentLoaded",function(){
-    let x=input();
-    if(!x){
-      const pos=document.querySelector("#tab-pos,#tab-penjualan");
-      if(pos){
-        const d=document.createElement("div");
-        d.style.cssText="background:white;padding:12px;border:1px solid #ddd;border-radius:10px;margin-bottom:12px";
-        d.innerHTML='<b>🔎 Scan Barcode</b> <input id="barcodeInput" autocomplete="off" placeholder="Scan barcode lalu Enter" style="margin-left:10px;padding:9px;min-width:260px;border:1px solid #ccc;border-radius:7px"><button onclick="focusBarcodeScanner()" style="padding:9px;margin-left:6px">Fokus Scanner</button>';
-        pos.prepend(d); x=d.querySelector("#barcodeInput");
-      }
-    }
-    if(x)x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handleBarcodeScan(x.value);x.value="";}});
-    if(x)focusBarcodeScanner();
-    document.addEventListener("keydown",e=>{
-      if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
-      if(e.key==="Enter"){if(buf.length>=4)handleBarcodeScan(buf);buf="";return;}
-      if(e.key.length===1){buf+=e.key;clearTimeout(timer);timer=setTimeout(()=>buf="",80);}
-    });
-  });
+ let buf="", timer=null;
+ function input(){return document.getElementById("barcodeInput")||document.querySelector('input[id*="barcode" i],input[placeholder*="barcode" i]');}
+ window.focusBarcodeScanner=function(){const x=input();if(x){x.focus();x.select?.();}};
+ window.handleBarcodeScan=function(code){
+   code=String(code||"").trim(); if(!code)return;
+   if(typeof window.cariBarangDenganBarcode==="function") window.cariBarangDenganBarcode(code);
+   else if(typeof window.searchProductByBarcode==="function") window.searchProductByBarcode(code);
+   else if(typeof window.tambahKeKeranjangDenganBarcode==="function") window.tambahKeKeranjangDenganBarcode(code);
+   else alert("Barcode "+code+" belum ditemukan.");
+   setTimeout(focusBarcodeScanner,100);
+ };
+ document.addEventListener("DOMContentLoaded",function(){
+   let x=input();
+   if(!x){
+     const pos=document.querySelector("#tab-pos,#tab-penjualan");
+     if(pos){
+       const d=document.createElement("div");
+       d.style.cssText="background:white;padding:12px;border:1px solid #ddd;border-radius:10px;margin-bottom:12px";
+       d.innerHTML='<b>🔎 Scan Barcode</b> <input id="barcodeInput" autocomplete="off" placeholder="Scan barcode lalu Enter" style="margin-left:10px;padding:9px;min-width:260px;border:1px solid #ccc;border-radius:7px"><button onclick="focusBarcodeScanner()" style="padding:9px;margin-left:6px">Fokus Scanner</button>';
+       pos.prepend(d); x=d.querySelector("#barcodeInput");
+     }
+   }
+   if(x)x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handleBarcodeScan(x.value);x.value="";}});
+   if(x)focusBarcodeScanner();
+   document.addEventListener("keydown",e=>{
+     if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+     if(e.key==="Enter"){if(buf.length>=4)handleBarcodeScan(buf);buf="";return;}
+     if(e.key.length===1){buf+=e.key;clearTimeout(timer);timer=setTimeout(()=>buf="",80);}
+   });
+ });
 })();
-</script>
 
-<script>
 window.printCurrentPage=function(){window.print()};
-window.printReceipt=function(t){
- t=t||window.lastTransaction||{};
- const items=Array.isArray(t.items)?t.items:[];
- const rupiah=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
- const rows=items.map(i=>`<tr><td>${i.nama||i.name||"-"}</td><td>${i.qty||i.jumlah||1}</td><td>${rupiah((i.harga||i.price||0)*(i.qty||i.jumlah||1))}</td></tr>`).join("");
- const w=window.open("","_blank","width=420,height=700");
- if(!w){alert("Izinkan pop-up untuk mencetak struk.");return}
- w.document.write(`<html><head><title>Struk</title><style>@page{size:80mm auto;margin:4mm}body{font:12px Arial}table{width:100%}td{padding:3px}h2{text-align:center}</style></head><body><h2>APLIKASI KIOS PRO</h2><div style="text-align:center">${t.nomor||t.id||""}<br>${t.tanggal||new Date().toLocaleString("id-ID")}</div><hr><table>${rows}</table><hr><b>Total: ${rupiah(t.total)}</b><script>onload=()=>print()</script></body></html>`);
- w.document.close();
-};
 </script>
-</body></html>
+</body>
+</html>
